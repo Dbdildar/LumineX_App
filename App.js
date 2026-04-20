@@ -1,13 +1,20 @@
-// App.js
-import React, { useEffect } from 'react';
-import { StatusBar, View, Modal, StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StatusBar, View, Modal, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import RNBootSplash from "react-native-bootsplash";
+
+// Context & Navigation
 import { AppProvider, useApp } from './src/context/AppContext';
 import AppNavigator from './src/navigation/AppNavigator';
+
+// Components & Screens
 import { Toast } from './src/components/ui';
 import AuthScreen from './src/screens/AuthScreen';
 import VideoPlayer from './src/components/player/VideoPlayer';
+import AnimatedSplashScreen from './src/screens/AnimatedSplashScreen';
+
+// API
 import { videoAPI } from './src/lib/supabase';
 
 function AppContent() {
@@ -58,7 +65,11 @@ function AppContent() {
         {authModal && (
           <AuthScreen
             route={{ params: { mode: authModal } }}
-            navigation={{ goBack: () => setAuthModal(null), canGoBack: () => true, navigate: () => {} }}
+            navigation={{ 
+                goBack: () => setAuthModal(null), 
+                canGoBack: () => true, 
+                navigate: () => {} 
+            }}
           />
         )}
       </Modal>
@@ -70,6 +81,30 @@ function AppContent() {
 }
 
 export default function App() {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        // Perform any essential pre-loading here (e.g., Supabase session check)
+        // Then hide the native static splash to reveal the animated one
+        await RNBootSplash.hide({ fade: true });
+      } catch (error) {
+        console.error("Splash initialization failed", error);
+      }
+    };
+
+    init();
+  }, []);
+
+  // Show the Animated Lottie Splash Screen first
+  if (visible) {
+    return (
+        <AnimatedSplashScreen onFinish={() => setVisible(false)} />
+    );
+  }
+
+  // Once finished, render the main application stack
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
